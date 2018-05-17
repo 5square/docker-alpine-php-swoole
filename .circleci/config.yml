@@ -1,0 +1,211 @@
+version: 2
+jobs:
+  build:
+    working_directory: /app
+    docker:
+      - image: docker:17.12.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}
+          paths:
+            - ~/docker-images/
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i ~/docker-images/$CIRCLE_PROJECT_REPONAME.tar | true
+      - run:
+          name: Build application Docker image
+          command: |
+            mkdir -p build
+            cp bin/amd64/nothing.sh ./build/pre-build
+            cp bin/amd64/nothing.sh ./build/post-build
+            docker build --cache-from=$CIRCLE_PROJECT_REPONAME -t $CIRCLE_PROJECT_REPONAME .
+            docker images
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p ~/docker-images
+            docker save -o ~/docker-images/$CIRCLE_PROJECT_REPONAME.tar $CIRCLE_PROJECT_REPONAME
+      - save_cache:
+          key: v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Revision }}
+          paths:
+            - ~/docker-images/
+  deploy-arm:
+    working_directory: /app
+    docker:
+      - image: docker:17.12.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}
+          paths:
+            - ~/docker-images/
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i ~/docker-images/$CIRCLE_PROJECT_REPONAME.tar | true
+      - run:
+          name: Login to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Build arm Docker Image with Labels
+          command: |
+            mkdir -p build
+            cp bin/arm/resin-xbuild ./build/pre-build
+            cp bin/arm/resin-xbuild ./build/post-build
+            docker build --cache-from=$CIRCLE_PROJECT_REPONAME \
+              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              --build-arg VERSION=${CIRCLE_TAG} \
+              --build-arg VCS_URL=${CIRCLE_REPOSITORY_URL} \
+              --build-arg VCS_REF=${CIRCLE_SHA1} \
+              --build-arg BASE_IMAGE_NAMESPACE=${DOCKER_IMAGE_NAMESPACE}/ \
+              --build-arg BASE_IMAGE=ci-qemu \
+              --build-arg BASE_IMAGE_TAG="7.2-alpine-arm-php" \
+              -t ${DOCKER_IMAGE_NAMESPACE}/$CIRCLE_PROJECT_REPONAME:${CIRCLE_TAG}-arm .
+      - run:
+          name: Tag Image and Push
+          command: |
+            docker push ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-arm
+  deploy-amd64:
+    working_directory: /app
+    docker:
+      - image: docker:17.12.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}
+          paths:
+            - ~/docker-images/
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i ~/docker-images/$CIRCLE_PROJECT_REPONAME.tar | true
+      - run:
+          name: Login to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Build amd64 Docker Image with Labels
+          command: |
+            mkdir -p build
+            cp bin/amd64/nothing.sh ./build/pre-build
+            cp bin/amd64/nothing.sh ./build/post-build
+            docker build --cache-from=$CIRCLE_PROJECT_REPONAME \
+              --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+              --build-arg VERSION=${CIRCLE_TAG} \
+              --build-arg VCS_URL=${CIRCLE_REPOSITORY_URL} \
+              --build-arg VCS_REF=${CIRCLE_SHA1} \
+              -t ${DOCKER_IMAGE_NAMESPACE}/$CIRCLE_PROJECT_REPONAME:${CIRCLE_TAG}-amd64 .
+      - run:
+          name: Tag Image and Push
+          command: |
+            docker push ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-amd64
+  create-manifest:
+    working_directory: /app
+    docker:
+      - image: homesmarthome/circleci-manifest-tool:latest
+    steps:
+      - setup_remote_docker
+      - run:
+          name: Login to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: Manifest creation
+          command: |
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-arm
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-amd64
+            manifest-tool push from-args \
+              --platforms linux/amd64,linux/arm \
+              --template ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-ARCH \
+              --target ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}
+            manifest-tool push from-args \
+              --platforms linux/amd64,linux/arm \
+              --template ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-ARCH \
+              --target ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+
+  post-deploy:
+    working_directory: /app
+    docker:
+      - image: docker:17.12.0-ce-git
+    steps:
+      - setup_remote_docker
+      - run:
+          name: Update Micro Badger
+          command: |
+            set +o pipefail
+            apk add --no-cache curl curl-dev
+            curl -X POST $MICROBADGER_WEBHOOK
+      - run:
+          name: Test for arm support
+          command: |
+            docker pull mplatform/mquery
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+            echo search for linux/arm in manifest
+            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG} \
+            | grep -Fq "linux/arm" && \
+            echo arch linux/arm found || \
+            exit 1
+      - run:
+          name: Test for amd64 support
+          command: |
+            docker pull mplatform/mquery
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+            echo search for linux/amd64 in manifest
+            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG} \
+            | grep -Fq "linux/amd64" && \
+            echo arch linux/amd64 found || \
+            exit 1
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - deploy-arm:
+          filters:
+            tags:
+              only: /^\d\.\d\..+/
+            branches:
+              ignore: /.*/
+          requires:
+            - build
+      - deploy-amd64:
+          filters:
+            tags:
+              only: /^\d\.\d\..+/
+            branches:
+              ignore: /.*/
+          requires:
+            - build
+      - create-manifest:
+          filters:
+            tags:
+              only: /^\d\.\d\..+/
+            branches:
+              ignore: /.*/
+          requires:
+            - deploy-arm
+            - deploy-amd64
+      - post-deploy:
+          filters:
+            tags:
+              only: /^\d\.\d\..+/
+            branches:
+              ignore: /.*/
+          requires:
+            - create-manifest
