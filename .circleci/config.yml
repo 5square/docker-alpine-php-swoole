@@ -179,7 +179,7 @@ workflows:
       - deploy-arm:
           filters:
             tags:
-              only: /^php-\d\.\d-swoole-\d.\d-.+/
+              only: /^php-\d\.\d-swoole-\d\.\d\.\d-.+/
             branches:
               ignore: /.*/
           requires:
@@ -187,7 +187,7 @@ workflows:
       - deploy-amd64:
           filters:
             tags:
-              only: /^php-\d\.\d-swoole-\d.\d-.+/
+              only: /^php-\d\.\d-swoole-\d\.\d\.\d-.+/
             branches:
               ignore: /.*/
           requires:
@@ -195,7 +195,7 @@ workflows:
       - create-manifest:
           filters:
             tags:
-              only: /^php-\d\.\d-swoole-\d.\d-.+/
+              only: /^php-\d\.\d-swoole-\d\.\d\.\d-.+/
             branches:
               ignore: /.*/
           requires:
@@ -204,7 +204,7 @@ workflows:
       - post-deploy:
           filters:
             tags:
-              only: /^php-\d\.\d-swoole-\d.\d-.+/
+              only: /^php-\d\.\d-swoole-\d\.\d\.\d-.+/
             branches:
               ignore: /.*/
           requires:
