@@ -19,7 +19,7 @@ RUN [ "cross-build-start" ]
 
 RUN apk add --no-cache git autoconf g++ make
 
-ARG SWOOLE_VERSION=2.1.3
+ARG SWOOLE_VERSION=v2.1.3
 
 RUN git clone --branch $SWOOLE_VERSION https://github.com/swoole/swoole-src.git /swoole
 
@@ -50,8 +50,6 @@ RUN [ "cross-build-start" ]
 # Custom Setup
 #-------------------------------------------------------------------------------
 
-#RUN apk add --no-cache php7 php7-openssl php7-json libevent
-
 COPY --from=builder /swoole/modules/swoole.so /usr/local/lib/php/extensions/no-debug-non-zts-20170718/swoole.so
 
 COPY image_files /
@@ -74,12 +72,12 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VCS_URL
 ARG VERSION
-LABEL de.5square.homesmarthome.build-date=$BUILD_DATE \
-      de.5square.homesmarthome.name="homesmarthome/amazonecho_shuttle" \
-      de.5square.homesmarthome.description="Shuttle service for amazon echo mqtt bridge" \
-      de.5square.homesmarthome.url="homesmarthome.5square.de" \
-      de.5square.homesmarthome.vcs-ref=$VCS_REF \
-      de.5square.homesmarthome.vcs-url="$VCS_URL" \
-      de.5square.homesmarthome.vendor="5square" \
-      de.5square.homesmarthome.version=$VERSION \
-      de.5square.homesmarthome.schema-version="1.0"
+LABEL de.5square.build-date=$BUILD_DATE \
+      de.5square.name="5square/php-swoole" \
+      de.5square.description="Shuttle service for amazon echo mqtt bridge" \
+      de.5square.url="5square.de" \
+      de.5square.vcs-ref=$VCS_REF \
+      de.5square.vcs-url="$VCS_URL" \
+      de.5square.vendor="5square" \
+      de.5square.version=$VERSION \
+      de.5square.schema-version="1.0"
