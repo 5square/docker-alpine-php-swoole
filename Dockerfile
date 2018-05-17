@@ -74,7 +74,7 @@ ARG VCS_URL
 ARG VERSION
 LABEL de.5square.build-date=$BUILD_DATE \
       de.5square.name="5square/php-swoole" \
-      de.5square.description="Shuttle service for amazon echo mqtt bridge" \
+      de.5square.description="Multiarch (amd64 and arm) Docker image with PHP 7.2 and Swoole." \
       de.5square.url="5square.de" \
       de.5square.vcs-ref=$VCS_REF \
       de.5square.vcs-url="$VCS_URL" \
