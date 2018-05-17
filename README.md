@@ -10,7 +10,7 @@ Based on the great work of the [Swoole](https://github.com/swoole/swoole-src) co
 ## Build
 Running
 ```make build```
-will build an Docker image ```5square/php-swoole``` with tag <GIT_TAG>-<COMMIT>
+will build an Docker image ```5square/php-swoole``` with tag ```<GIT_TAG>-<COMMIT>
 
 ## Run and build
 ```
