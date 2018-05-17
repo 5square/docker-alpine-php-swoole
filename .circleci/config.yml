@@ -114,7 +114,7 @@ jobs:
   create-manifest:
     working_directory: /app
     docker:
-      - image: homesmarthome/circleci-manifest-tool:latest
+      - image: 5square/ci-manifest:latest
     steps:
       - setup_remote_docker
       - run:
@@ -204,7 +204,7 @@ workflows:
       - post-deploy:
           filters:
             tags:
-              only: /^\d\.\d\..+/
+              only: /^php-\d\.\d-swoole-\d.\d-.+/
             branches:
               ignore: /.*/
           requires:
