@@ -10,10 +10,18 @@ Based on the great work of the [Swoole](https://github.com/swoole/swoole-src) co
 ## Build
 Running
 ```make build```
-will build an Docker image ```5square/php-swoole``` with tag <GIT_TAG>-<COMMIT>
+will build an Docker image ```5square/php-swoole``` with tag ```<GIT_TAG>-<COMMIT>```
 
-## Run 
+## Run and build
 ```
 make run
 ```
 will build the image and start a container called ```swoole_test_run```. As an example, a simple webserver is being started, which listens and responds on port 9501 (localhost). 
+
+## Run Image from Docker Hub
+```
+docker run \
+  --rm \
+  -p 9501:9501 \
+  5square/php-swoole
+```
