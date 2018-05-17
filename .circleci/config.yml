@@ -69,11 +69,11 @@ jobs:
               --build-arg BASE_IMAGE_NAMESPACE=${DOCKER_IMAGE_NAMESPACE}/ \
               --build-arg BASE_IMAGE=ci-qemu \
               --build-arg BASE_IMAGE_TAG="7.2-alpine-arm-php" \
-              -t ${DOCKER_IMAGE_NAMESPACE}/$CIRCLE_PROJECT_REPONAME:${CIRCLE_TAG}-arm .
+              -t ${DOCKER_IMAGE_NAMESPACE}/$DOCKER_IMAGE_NAME:${CIRCLE_TAG}-arm .
       - run:
           name: Tag Image and Push
           command: |
-            docker push ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-arm
+            docker push ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-arm
   deploy-amd64:
     working_directory: /app
     docker:
@@ -106,11 +106,11 @@ jobs:
               --build-arg VERSION=${CIRCLE_TAG} \
               --build-arg VCS_URL=${CIRCLE_REPOSITORY_URL} \
               --build-arg VCS_REF=${CIRCLE_SHA1} \
-              -t ${DOCKER_IMAGE_NAMESPACE}/$CIRCLE_PROJECT_REPONAME:${CIRCLE_TAG}-amd64 .
+              -t ${DOCKER_IMAGE_NAMESPACE}/$DOCKER_IMAGE_NAME:${CIRCLE_TAG}-amd64 .
       - run:
           name: Tag Image and Push
           command: |
-            docker push ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-amd64
+            docker push ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-amd64
   create-manifest:
     working_directory: /app
     docker:
@@ -124,16 +124,16 @@ jobs:
       - run:
           name: Manifest creation
           command: |
-            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-arm
-            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-amd64
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-arm
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-amd64
             manifest-tool push from-args \
               --platforms linux/amd64,linux/arm \
-              --template ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-ARCH \
-              --target ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}
+              --template ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-ARCH \
+              --target ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}
             manifest-tool push from-args \
               --platforms linux/amd64,linux/arm \
-              --template ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}-ARCH \
-              --target ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+              --template ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}-ARCH \
+              --target ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}
 
   post-deploy:
     working_directory: /app
@@ -151,9 +151,9 @@ jobs:
           name: Test for arm support
           command: |
             docker pull mplatform/mquery
-            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}
             echo search for linux/arm in manifest
-            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG} \
+            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG} \
             | grep -Fq "linux/arm" && \
             echo arch linux/arm found || \
             exit 1
@@ -161,9 +161,9 @@ jobs:
           name: Test for amd64 support
           command: |
             docker pull mplatform/mquery
-            docker pull ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
+            docker pull ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG}
             echo search for linux/amd64 in manifest
-            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG} \
+            docker run mplatform/mquery ${DOCKER_IMAGE_NAMESPACE}/${DOCKER_IMAGE_NAME}:${CIRCLE_TAG} \
             | grep -Fq "linux/amd64" && \
             echo arch linux/amd64 found || \
             exit 1
