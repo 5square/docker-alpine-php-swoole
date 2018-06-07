@@ -62,7 +62,6 @@ jobs:
             chmod +rx ~/bin/goss
             curl -L https://raw.githubusercontent.com/aelsabbahy/goss/v0.3.6/extras/dgoss/dgoss -o ~/bin/dgoss
             chmod +rx ~/bin/dgoss
-            export GOSS_PATH=~/bin/goss
             goss -version
       - run:
           name: Test
