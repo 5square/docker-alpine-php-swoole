@@ -1,5 +1,3 @@
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-docker build $DIR/.. -t ${CIRCLE_PROJECT_REPONAME}
 export GOSS_FILES_PATH=test
 export GOSS_OPTS="--max-concurrent=1"
 
