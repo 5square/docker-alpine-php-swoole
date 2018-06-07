@@ -58,7 +58,11 @@ jobs:
             export GOSS_DST=~/bin
             export PATH=$PATH:~/bin
             apk add --no-cache curl curl-dev
-            curl -fsSL https://goss.rocks/install | sh
+            curl -L https://github.com/aelsabbahy/goss/releases/download/v0.3.6/goss-linux-amd64 -o ~/bin/goss
+            chmod +rx ~/bin/goss
+            curl -L https://raw.githubusercontent.com/aelsabbahy/goss/v0.3.6/extras/dgoss/dgoss -o ~/bin/dgoss
+            chmod +rx ~/bin/dgoss
+            export GOSS_PATH=~/bin/goss
             goss -version
       - run:
           name: Test
