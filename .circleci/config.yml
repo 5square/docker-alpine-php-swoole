@@ -70,20 +70,10 @@ jobs:
             # Important, change from mount to work on remote docker, see https://github.com/aelsabbahy/goss/pull/271
             # If using machine image you do not need this.
             export GOSS_FILES_STRATEGY=cp
-            ls -la test
-            chmod +rx test/dgoss
             test/runTests.sh junit
       - store_test_results:
-          path: goss
+          path: ~/reports/goss
 
-      - run:
-          name: Goss Test
-          command: |
-            docker exec -ti $CIRCLE_PROJECT_REPONAME /goss/goss --gossfile /goss/goss.yaml validate -f documentation
-      - run:
-          name: Container Clean Up
-          command: |
-            docker rm -f $CIRCLE_PROJECT_REPONAME
   deploy-arm:
     working_directory: /app
     docker:
