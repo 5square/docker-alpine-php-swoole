@@ -73,6 +73,11 @@ jobs:
             test/runTests.sh junit
       - store_test_results:
           path: ~/reports/goss
+      - run:
+          name: DEBUG
+          command: |
+            ls -la ~/reports/goss
+            cat ~/reports/goss/report.xml
 
   deploy-arm:
     working_directory: /app
