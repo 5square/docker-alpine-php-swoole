@@ -2,6 +2,8 @@ export GOSS_FILES_PATH=test
 export GOSS_OPTS="--max-concurrent=1"
 export GOSS_PATH=~/bin/goss
 
+ls -la ~/bin
+
 case $1 in
   junit)
     mkdir -p ./reports/goss

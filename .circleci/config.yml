@@ -63,6 +63,7 @@ jobs:
             curl -L https://raw.githubusercontent.com/aelsabbahy/goss/v0.3.6/extras/dgoss/dgoss -o ~/bin/dgoss
             chmod +rx ~/bin/dgoss
             goss -version
+            ls -la ~/bin
       - run:
           name: Test
           command: |
