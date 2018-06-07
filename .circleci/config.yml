@@ -34,6 +34,50 @@ jobs:
           key: v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Revision }}
           paths:
             - ~/docker-images/
+  test-goss:
+    working_directory: /app
+    docker:
+      - image: docker:17.12.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - v1-{{ .Environment.CIRCLE_PROJECT_REPONAME }}
+          paths:
+            - ~/docker-images/
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i ~/docker-images/$CIRCLE_PROJECT_REPONAME.tar | true
+      - run:
+          name: Install goss
+          command: |
+            mkdir ~/bin
+            export GOSS_DST=~/bin
+            export PATH=$PATH:~/bin
+            curl -fsSL https://goss.rocks/install | sh
+            goss -version
+      - run:
+          name: Test
+          command: |
+            export PATH=$PATH:~/bin
+            # Important, change from mount to work on remote docker, see https://github.com/aelsabbahy/goss/pull/271
+            # If using machine image you do not need this.
+            export GOSS_FILES_STRATEGY=cp
+            test/runTests.sh junit
+      - store_test_results:
+          path: goss
+
+      - run:
+          name: Goss Test
+          command: |
+            docker exec -ti $CIRCLE_PROJECT_REPONAME /goss/goss --gossfile /goss/goss.yaml validate -f documentation
+      - run:
+          name: Container Clean Up
+          command: |
+            docker rm -f $CIRCLE_PROJECT_REPONAME
   deploy-arm:
     working_directory: /app
     docker:
@@ -177,6 +221,12 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - test-goss:
+          filters:
+            tags:
+              only: /.*/
+          requires:
+            - build
       - deploy-arm:
           filters:
             tags:
