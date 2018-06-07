@@ -57,14 +57,12 @@ jobs:
             mkdir ~/bin
             export GOSS_DST=~/bin
             export PATH=$PATH:~/bin
-            apk add --no-cache curl curl-dev
+            apk add --no-cache curl curl-dev bash
             curl -L https://github.com/aelsabbahy/goss/releases/download/v0.3.6/goss-linux-amd64 -o ~/bin/goss
             chmod +rx ~/bin/goss
             curl -L https://raw.githubusercontent.com/aelsabbahy/goss/v0.3.6/extras/dgoss/dgoss -o ~/bin/dgoss
             chmod +rx ~/bin/dgoss
             goss -version
-            ~/bin/dgoss
-            ls -la ~/bin
       - run:
           name: Test
           command: |
