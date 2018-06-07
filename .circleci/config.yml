@@ -63,6 +63,7 @@ jobs:
             curl -L https://raw.githubusercontent.com/aelsabbahy/goss/v0.3.6/extras/dgoss/dgoss -o ~/bin/dgoss
             chmod +rx ~/bin/dgoss
             goss -version
+            ~/bin/dgoss
             ls -la ~/bin
       - run:
           name: Test
@@ -71,6 +72,8 @@ jobs:
             # Important, change from mount to work on remote docker, see https://github.com/aelsabbahy/goss/pull/271
             # If using machine image you do not need this.
             export GOSS_FILES_STRATEGY=cp
+            ls -la test
+            chmod +rx test/dgoss
             test/runTests.sh junit
       - store_test_results:
           path: goss
