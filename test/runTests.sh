@@ -1,6 +1,9 @@
+export PATH=$PATH:~/bin
+
 export GOSS_FILES_PATH=test
 export GOSS_OPTS="--max-concurrent=1"
 export GOSS_PATH=~/bin/goss
+export GOSS_FILES_STRATEGY=cp
 
 case $1 in
   junit)
