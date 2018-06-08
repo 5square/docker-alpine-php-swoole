@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-set -ex
+set -e
 
 USAGE="USAGE: $(basename "$0") [run|edit] <docker_run_params>"
 GOSS_FILES_PATH="${GOSS_FILES_PATH:-.}"
@@ -90,8 +90,8 @@ case "$1" in
         fi
         [[ $GOSS_SLEEP ]] && { info "Sleeping for $GOSS_SLEEP"; sleep "$GOSS_SLEEP"; }
         info "Container health"
-        if ! docker top $id; then
-            docker logs $id
+        if ! docker top $id >&2; then
+            docker logs $id >&2
         fi
         info "Running Tests"
         if [[ -z "${GOSS_VARS}" ]]; then
