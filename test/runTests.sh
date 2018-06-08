@@ -9,9 +9,9 @@ case $1 in
   junit)
     mkdir -p ~/reports/goss
     export GOSS_OPTS="$GOSS_OPTS --format junit"
-    ~/bin/dgoss run ${CIRCLE_PROJECT_REPONAME} > ~/reports/goss/report.xml
+    ~/bin/dgoss run --entrypoint=/bin/sh ${CIRCLE_PROJECT_REPONAME} > ~/reports/goss/report.xml
     ;;
   *)
-    ~/bin/dgoss run ${CIRCLE_PROJECT_REPONAME}
+    ~/bin/dgoss run --entrypoint=/bin/sh ${CIRCLE_PROJECT_REPONAME}
     ;;
 esac
